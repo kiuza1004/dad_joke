@@ -63,6 +63,26 @@
     </section>
   </template>
 
+  <template id="tpl-settings">
+    <section class="page">
+      <div class="card">
+        <label class="field">
+          <span>Gemini API 키 (선택)</span>
+          <input type="password" id="apiKeyInput" placeholder="AIzaSy... (비워두면 내장 키 사용)" autocomplete="off" />
+        </label>
+        <div class="row gap">
+          <button class="text-btn" id="apiKeyToggle">표시</button>
+          <button class="outlined-btn" id="apiKeyClear">삭제</button>
+          <button class="primary-btn" id="apiKeySave">저장</button>
+        </div>
+        <div class="batch-hint" style="margin-top:8px;">
+          본인의 키를 입력하면 그 키로 호출됩니다. 비워두면 앱 내장 키가 사용됩니다.
+          키는 이 브라우저의 localStorage 에만 저장되며 어디에도 전송되지 않습니다 (Gemini 호출 시 서버를 거쳐 사용됨).
+        </div>
+      </div>
+    </section>
+  </template>
+
   <template id="tpl-favorites">
     <section class="page">
       <div class="filter-row" id="filterRow"></div>

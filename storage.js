@@ -1,7 +1,22 @@
 const KEY_FAVS = "dad_joke_favorites_v1";
-const LEGACY_KEY_API = "dad_joke_api_key";
+const KEY_USER_API = "dad_joke_user_api_key_v1";
 
-try { localStorage.removeItem(LEGACY_KEY_API); } catch {}
+export function getUserApiKey() {
+  try { return (localStorage.getItem(KEY_USER_API) || "").trim(); }
+  catch { return ""; }
+}
+
+export function setUserApiKey(key) {
+  const v = (key || "").trim();
+  try {
+    if (v) localStorage.setItem(KEY_USER_API, v);
+    else localStorage.removeItem(KEY_USER_API);
+  } catch {}
+}
+
+export function clearUserApiKey() {
+  try { localStorage.removeItem(KEY_USER_API); } catch {}
+}
 
 function uuid() {
   if (crypto?.randomUUID) return crypto.randomUUID();

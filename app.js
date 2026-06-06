@@ -1,5 +1,5 @@
 import { generateJoke, generateJokes, RateLimitedError, MAX_BATCH } from "./gemini.js";
-import { Favorites, fromJoke, makeManual } from "./storage.js";
+import { Favorites, fromJoke, makeManual, getUserApiKey, setUserApiKey, clearUserApiKey } from "./storage.js";
 
 const MAX_TOTAL_BATCH = 30;
 const MAX_RETRIES = 1;
@@ -125,6 +125,7 @@ function twoStepConfirm({ count, label, onConfirm }) {
 function render() {
   if (state.view === "home") renderHome();
   else if (state.view === "favorites") renderFavorites();
+  else if (state.view === "settings") renderSettings();
 }
 
 // ============ HOME ============
@@ -134,6 +135,7 @@ function renderHome() {
   backBtn.hidden = true;
   setTopActions([
     { icon: "🔖", title: "저장한 개그", onClick: () => navigate("favorites") },
+    { icon: "⚙️", title: "설정", onClick: () => navigate("settings") },
   ]);
 
   const tpl = document.getElementById("tpl-home").content.cloneNode(true);
@@ -369,6 +371,51 @@ function savePending(id) {
 function discardPending(id) {
   state.pendingJokes = state.pendingJokes.filter((p) => p.id !== id);
   render();
+}
+
+// ============ SETTINGS ============
+
+function renderSettings() {
+  topTitle.textContent = "설정";
+  backBtn.hidden = false;
+  setTopActions([]);
+
+  const tpl = document.getElementById("tpl-settings").content.cloneNode(true);
+  appEl.innerHTML = "";
+  appEl.appendChild(tpl);
+
+  const input = appEl.querySelector("#apiKeyInput");
+  const toggle = appEl.querySelector("#apiKeyToggle");
+  const clearBtn = appEl.querySelector("#apiKeyClear");
+  const saveBtn = appEl.querySelector("#apiKeySave");
+
+  input.value = getUserApiKey();
+
+  toggle.onclick = () => {
+    if (input.type === "password") {
+      input.type = "text";
+      toggle.textContent = "숨김";
+    } else {
+      input.type = "password";
+      toggle.textContent = "표시";
+    }
+  };
+
+  clearBtn.onclick = () => {
+    input.value = "";
+    clearUserApiKey();
+    showSnackbar("사용자 키 삭제 — 내장 키가 사용됩니다.");
+  };
+
+  saveBtn.onclick = () => {
+    const v = input.value.trim();
+    if (v && !v.startsWith("AIzaSy")) {
+      showSnackbar("Gemini API 키는 'AIzaSy' 로 시작해야 합니다.");
+      return;
+    }
+    setUserApiKey(v);
+    showSnackbar(v ? "사용자 키 저장 완료" : "키를 비웠습니다 — 내장 키가 사용됩니다.");
+  };
 }
 
 // ============ FAVORITES ============
@@ -760,7 +807,6 @@ function openEditDialog(initial) {
 // Init
 favorites.subscribe(() => {
   if (state.view === "favorites" || state.view === "home") {
-    // re-render only if relevant; cheap enough
     render();
   }
 });

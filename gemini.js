@@ -14,10 +14,17 @@ function readAccessToken() {
   return v || "";
 }
 
+function readUserApiKey() {
+  try { return (localStorage.getItem("dad_joke_user_api_key_v1") || "").trim(); }
+  catch { return ""; }
+}
+
 async function callProxy(payload) {
   const headers = { "content-type": "application/json" };
   const token = readAccessToken();
   if (token) headers["x-access-token"] = token;
+  const userKey = readUserApiKey();
+  if (userKey) headers["x-user-api-key"] = userKey;
 
   let res;
   try {

@@ -12,10 +12,22 @@ API 키는 **Vercel 서버리스 함수 (`api/generate.js`)** 가 서버 측에�
 - **가져오기 / 내보내기**: 내장 시드, JSON 파일 가져오기 (중복 제거), JSON 내보내기
 - **키 관리 UI 없음** — 키는 서버 환경변수에 보관됩니다
 
+## API 키 우선순위
+
+`api/generate.js` 는 다음 순서로 키를 선택합니다:
+
+1. **사용자 입력 키** — 앱의 ⚙️ 설정에서 입력한 키 (브라우저 localStorage → `x-user-api-key` 헤더로 서버에 전달)
+2. **Vercel 환경변수 `GEMINI_API_KEY`** — 설정되어 있으면 사용
+3. **내장 fallback 키** — `api/generate.js` 의 `BUILTIN_KEY` 상수
+
+세 값 모두 없으면 500 에러. 내장 키 덕분에 아무 설정 없이도 동작합니다.
+
+⚠️ **내장 키는 저장소 소스 코드에 그대로 노출됩니다.** 공개 저장소에서는 누구나 호출해 본인 키 한도를 소진시킬 수 있고, Google 이 노출된 키를 자동 폐기할 수 있습니다. 비공개 사용이 원칙이면 `BUILTIN_KEY` 를 빈 문자열로 두고 Vercel 환경변수 `GEMINI_API_KEY` 만 사용하세요.
+
 ## 배포 (Vercel)
 
 1. 이 저장소를 Vercel에 연결 (Import Project → Continue)
-2. **Settings → Environment Variables** 에서 다음 추가:
+2. (선택) **Settings → Environment Variables** 에서 다음 추가:
    - Name: `GEMINI_API_KEY`
    - Value: `AIzaSy...` (본인 키)
    - Environment: Production / Preview / Development 전부 체크

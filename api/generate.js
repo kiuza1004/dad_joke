@@ -2,6 +2,18 @@ const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 const MODEL = "gemini-2.5-flash-lite";
 const MAX_BATCH = 20;
 
+// 내장 fallback 키. 우선순위: 클라이언트 헤더 x-user-api-key > env GEMINI_API_KEY > BUILTIN_KEY.
+// 주의: 이 값이 public GitHub 저장소에 그대로 노출됩니다. 위험 인지 후 사용하세요.
+const BUILTIN_KEY = "AIzaSyCbATnOAAXP4s9FhDvQH5v9-ifLQh5vwNY";
+
+function pickApiKey(req) {
+  const userKey = (req.headers["x-user-api-key"] || "").toString().trim();
+  if (userKey.startsWith("AIzaSy")) return userKey;
+  const envKey = (process.env.GEMINI_API_KEY || "").trim();
+  if (envKey) return envKey;
+  return BUILTIN_KEY;
+}
+
 const SYSTEM_PROMPT = `[역할]
 너는 재치 있고 유머 감각이 뛰어난 '아재개그 생성기'야. 사용자의 요청에 따라 썰렁하지만 웃음이 나오는 정통 한국식 아재개그를 만들어내는 것이 너의 임무야.
 
@@ -155,10 +167,10 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "Forbidden" });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = pickApiKey(req);
   if (!apiKey) {
     return res.status(500).json({
-      error: "서버 설정 오류: GEMINI_API_KEY 환경변수가 설정되지 않았습니다.",
+      error: "서버 설정 오류: 사용할 API 키가 없습니다.",
     });
   }
 
