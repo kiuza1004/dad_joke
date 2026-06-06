@@ -8,12 +8,22 @@ export class RateLimitedError extends Error {
   }
 }
 
+function readAccessToken() {
+  const meta = document.querySelector('meta[name="x-access-token"]');
+  const v = meta?.getAttribute("content")?.trim();
+  return v || "";
+}
+
 async function callProxy(payload) {
+  const headers = { "content-type": "application/json" };
+  const token = readAccessToken();
+  if (token) headers["x-access-token"] = token;
+
   let res;
   try {
     res = await fetch("/api/generate", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
   } catch (e) {

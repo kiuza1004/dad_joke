@@ -41,7 +41,33 @@ vercel dev     # http://localhost:3000
 - 클라이언트는 `/api/generate` 로 `{ mode, keyword, count }` 만 전송
 - Rate limit (429) 시 `retryAfterSeconds` 만 전달되며 키 정보는 절대 응답하지 않음
 - 저장소(Git/Vercel 빌드 로그) 어디에도 키가 들어가지 않음 — `.gitignore` 와 환경변수 분리 보장
-- **공개 배포 시 주의**: Vercel 프로젝트 URL은 누구나 호출할 수 있으므로 본인 키의 분당/일일 한도가 모두 소진될 수 있음. 비공개 사용을 원하면 Vercel **Deployment Protection** (Pro 플랜) 또는 `api/generate.js` 상단에 간단한 `Authorization` 토큰 체크를 추가하세요.
+- **공개 배포 시 주의**: Vercel 프로젝트 URL은 누구나 호출할 수 있으므로 본인 키의 분당/일일 한도가 모두 소진될 수 있음. 아래의 간이 액세스 컨트롤 두 가지(또는 Vercel **Deployment Protection** — Pro 플랜) 중 하나 이상을 활용하세요.
+
+## 간이 액세스 컨트롤 (선택)
+
+`api/generate.js` 의 `checkAccess()` 가 다음 두 환경변수를 함께 (AND) 검사합니다. 둘 다 미설정이면 기존처럼 누구나 호출할 수 있습니다.
+
+### 1) `ALLOWED_ORIGINS` — Origin/Referer 화이트리스트
+
+쉼표 구분, 클라이언트 코드 수정 불필요.
+
+- Name: `ALLOWED_ORIGINS`
+- Value 예: `https://kiuza1004.github.io,https://dad-joke.vercel.app`
+
+브라우저가 보내는 `Origin`/`Referer` 헤더 중 하나라도 일치하면 통과. `curl` 같은 직접 호출은 차단됩니다(브라우저 외 호출엔 헤더가 없거나 위조 가능 — 강한 보안은 아님).
+
+### 2) `ACCESS_TOKEN` — 공유 비밀 토큰
+
+- Name: `ACCESS_TOKEN`
+- Value: 임의의 긴 문자열
+
+설정 시 클라이언트가 `x-access-token` 헤더로 같은 값을 보내야 합니다. `index.html` 의 주석을 풀고 토큰을 넣으면 됩니다:
+
+```html
+<meta name="x-access-token" content="여기에-토큰" />
+```
+
+⚠️ 페이지 소스에 토큰이 보이므로 진짜 비밀은 아닙니다. **공개되지 않은 URL** (Deployment Protection 또는 비공개 링크 공유) 과 함께 사용해야 의미가 있습니다.
 
 ## GitHub Pages 사용 불가
 

@@ -111,10 +111,48 @@ function parseRetrySeconds(body, header) {
   return 30;
 }
 
+function checkAccess(req) {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const accessToken = process.env.ACCESS_TOKEN || "";
+
+  if (allowedOrigins.length === 0 && !accessToken) {
+    return { ok: true };
+  }
+
+  if (allowedOrigins.length > 0) {
+    const origin = (req.headers.origin || "").trim();
+    const referer = (req.headers.referer || "").trim();
+    const allowed = allowedOrigins.some((o) => {
+      if (!o) return false;
+      if (origin && origin === o) return true;
+      if (referer && (referer === o || referer.startsWith(o + "/"))) return true;
+      return false;
+    });
+    if (!allowed) return { ok: false, reason: "origin" };
+  }
+
+  if (accessToken) {
+    const provided = (req.headers["x-access-token"] || "").trim();
+    if (provided !== accessToken) {
+      return { ok: false, reason: "token" };
+    }
+  }
+
+  return { ok: true };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const access = checkAccess(req);
+  if (!access.ok) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
