@@ -35,13 +35,13 @@
         <div class="batch-desc">위 주제로 N개를 한 번에 생성해 아래 목록에 추가합니다.</div>
         <div class="batch-row">
           <button class="icon-btn" id="batchDec" aria-label="감소">−</button>
-          <input type="number" id="batchCount" min="2" max="30" value="10" />
+          <input type="number" id="batchCount" min="1" max="10" value="1" />
           <button class="icon-btn" id="batchInc" aria-label="증가">＋</button>
           <button class="outlined-btn" id="batchGen">
-            <span id="batchGenLabel">10개 생성</span>
+            <span id="batchGenLabel">1개 생성</span>
           </button>
         </div>
-        <div class="batch-hint">분당 호출 한도가 있어 큰 숫자는 자동으로 나눠 호출됩니다. (최대 30)</div>
+        <div class="batch-hint">분당 호출 한도가 있어 큰 숫자는 자동으로 나눠 호출됩니다. (최대 10)</div>
       </div>
 
       <div class="card progress-card" id="progressCard" hidden>

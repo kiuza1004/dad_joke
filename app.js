@@ -1,7 +1,7 @@
 import { generateJoke, generateJokes, RateLimitedError, MAX_BATCH } from "./gemini.js";
 import { Favorites, fromJoke, makeManual, getUserApiKey, setUserApiKey, clearUserApiKey } from "./storage.js";
 
-const MAX_TOTAL_BATCH = 30;
+const MAX_TOTAL_BATCH = 10;
 const MAX_RETRIES = 1;
 const MAX_RETRY_SECONDS = 60;
 
@@ -158,17 +158,17 @@ function renderHome() {
   const batchGen = appEl.querySelector("#batchGen");
   const batchLabel = appEl.querySelector("#batchGenLabel");
 
-  let batchCount = parseInt(batchInput.value, 10) || 10;
+  let batchCount = parseInt(batchInput.value, 10) || 1;
   const setBatchCount = (n) => {
-    batchCount = Math.max(2, Math.min(MAX_TOTAL_BATCH, n));
+    batchCount = Math.max(1, Math.min(MAX_TOTAL_BATCH, n));
     batchInput.value = batchCount;
     batchLabel.textContent = `${batchCount}개 생성`;
-    batchDec.disabled = batchCount <= 2;
+    batchDec.disabled = batchCount <= 1;
     batchInc.disabled = batchCount >= MAX_TOTAL_BATCH;
   };
   setBatchCount(batchCount);
 
-  batchInput.addEventListener("change", () => setBatchCount(parseInt(batchInput.value, 10) || 2));
+  batchInput.addEventListener("change", () => setBatchCount(parseInt(batchInput.value, 10) || 1));
   batchInc.onclick = () => setBatchCount(batchCount + 1);
   batchDec.onclick = () => setBatchCount(batchCount - 1);
   batchGen.disabled = state.loading || !!state.batch;
@@ -291,7 +291,7 @@ async function handleSingleGenerate() {
 
 async function handleBatchGenerate(count) {
   if (state.loading || state.batch) return;
-  const target = Math.max(2, Math.min(MAX_TOTAL_BATCH, count));
+  const target = Math.max(1, Math.min(MAX_TOTAL_BATCH, count));
   const keyword = state.keyword;
   state.batch = { target, received: 0, added: 0, keyword };
   state.error = null;
@@ -301,7 +301,7 @@ async function handleBatchGenerate(count) {
   let failureMessage = null;
 
   while (remaining > 0) {
-    const chunk = Math.max(2, Math.min(MAX_BATCH, remaining));
+    const chunk = Math.max(1, Math.min(MAX_BATCH, remaining));
     let attempts = 0;
     let done = false;
     while (!done) {

@@ -62,7 +62,7 @@ export async function generateJoke(keyword) {
 }
 
 export async function generateJokes(keyword, count) {
-  const safe = Math.max(2, Math.min(MAX_BATCH, count));
+  const safe = Math.max(1, Math.min(MAX_BATCH, count));
   const data = await callProxy({ mode: "batch", keyword, count: safe });
   if (!Array.isArray(data.jokes)) throw new Error("응답에 jokes 배열이 없습니다.");
   return data.jokes;

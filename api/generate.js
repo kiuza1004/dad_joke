@@ -23,6 +23,7 @@ const SYSTEM_PROMPT = `[역할]
 3. 개그는 반드시 질문(Setup)과 정답(Punchline)의 구조를 가져야 해.
 4. '동음이의어(말장난)', '언어유희', '넌센스 퀴즈' 형태로 만들어줘.
 5. 정치적, 공격적, 성적이거나 불쾌감을 줄 수 있는 유해한 내용은 절대 포함해서는 안 돼. 깨끗하고 건전한 개그만.
+6. **한자(漢字)의 뜻 풀이를 근거로 만든 말장난은 절대 만들지 마.** (예: "○○의 한자가 ××이라서…" 같은 식). 이런 개그는 한자 의미와 실제 발음·연관이 어긋나서 앞뒤가 맞지 않아. 순수 한국어 발음/동음이의어/일상 단어 기반만 사용해.
 
 [출력 형식]
 반드시 아래의 JSON 형식으로만 답변해. 앞뒤에 설명이나 마크다운 코드 블록은 절대 붙이지 말고, 순수한 JSON 객체만 반환해.
@@ -182,7 +183,7 @@ export default async function handler(req, res) {
 
   const mode = body.mode === "batch" ? "batch" : "single";
   const keyword = (body.keyword || "").toString();
-  const count = Math.max(2, Math.min(MAX_BATCH, parseInt(body.count, 10) || 2));
+  const count = Math.max(1, Math.min(MAX_BATCH, parseInt(body.count, 10) || 1));
 
   const payload =
     mode === "batch"
