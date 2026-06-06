@@ -1,36 +1,51 @@
 # 아재개그 생성기 (Web)
 
-Google Gemini (`gemini-2.5-flash-lite`) 로 한국어 아재개그를 만들어 카드로 보여주고, 마음에 드는 항목만 로컬에 저장하는 단일 페이지 웹앱입니다. 별도 빌드 도구 없이 정적 호스팅(또는 `file://`) 으로 그대로 동작합니다.
+Google Gemini (`gemini-2.5-flash-lite`) 로 한국어 아재개그를 만들어 카드로 보여주고, 마음에 드는 항목만 로컬에 저장하는 단일 페이지 웹앱입니다.
+
+API 키는 **Vercel 서버리스 함수 (`api/generate.js`)** 가 서버 측에서만 사용하며, 브라우저 / 저장소 / Git 어디에도 노출되지 않습니다.
 
 ## 주요 기능
 
 - **생성**: 키워드 기반 한 개 생성 / 한 번에 2~30 개 일괄 생성
-- **임시 목록**: 생성된 결과는 메인 화면 하단에 카드로 누적되어, **저장하기 / 버리기** 를 항목별로 선택. **전체 삭제** 는 2단계 확인.
-- **저장한 개그**: 별표 토글, 수정, 삭제, 카테고리 칩 필터, 별표만 보기 필터, FAB 로 직접 추가
-- **가져오기 / 내보내기**: 내장 시드 가져오기, JSON 파일 가져오기 (중복 제거), JSON 내보내기
-- **설정**: Gemini API 키를 브라우저 `localStorage` 에 저장 / 삭제
+- **임시 목록**: 생성 결과는 메인 하단에 카드로 누적, 항목별 **저장하기 / 버리기**, **전체 삭제** 2단계 확인
+- **저장한 개그**: 별표, 수정, 삭제, 카테고리 칩 필터, 별표 필터, FAB 로 직접 추가
+- **가져오기 / 내보내기**: 내장 시드, JSON 파일 가져오기 (중복 제거), JSON 내보내기
+- **키 관리 UI 없음** — 키는 서버 환경변수에 보관됩니다
 
-## 사용 방법
+## 배포 (Vercel)
 
-1. [Google AI Studio](https://aistudio.google.com/app/apikey) 에서 Gemini API 키 발급 (키는 `AIzaSy...` 로 시작).
-2. `index.html` 을 그대로 열거나 정적 서버에 배포.
-3. 우측 상단 ⚙️ 에서 키 입력 → 저장.
-4. 메인에서 키워드(선택) 입력 후 **아재개그 만들기** 또는 **N개 생성**.
+1. 이 저장소를 Vercel에 연결 (Import Project → Continue)
+2. **Settings → Environment Variables** 에서 다음 추가:
+   - Name: `GEMINI_API_KEY`
+   - Value: `AIzaSy...` (본인 키)
+   - Environment: Production / Preview / Development 전부 체크
+3. 다시 배포 (Redeploy) — `api/generate.js` 가 자동으로 함수로 실행됨
 
-> 로컬 파일(`file://`)에서 열면 일부 브라우저가 `fetch("./seed_jokes.json")` 을 차단할 수 있습니다. 시드 가져오기가 실패하면 간단히 정적 서버로 띄우세요:
->
-> ```bash
-> # Python
-> python -m http.server 8000
-> # Node (npx)
-> npx serve .
-> ```
+[Google AI Studio](https://aistudio.google.com/app/apikey) 에서 키 발급.
 
-## 보안 주의
+## 로컬 개발
 
-- API 키는 브라우저 `localStorage` 에 **평문** 으로 저장됩니다. 모든 호출은 브라우저에서 직접 Google API 로 나가므로, 키가 네트워크 탭이나 저장소에서 노출됩니다.
-- **공용 PC 사용 금지**. 사용 후 ⚙️ 에서 키 삭제.
-- 본인 전용 / 개인용 환경에서만 사용하세요. 서비스 형태로 배포하려면 키를 서버 측 프록시에 보관하세요.
+서버리스 함수가 있어 정적 서버로는 동작하지 않습니다. Vercel CLI 사용:
+
+```bash
+npm i -g vercel
+vercel login
+vercel link    # 기존 프로젝트와 연결
+vercel env pull .env.local   # 환경변수 내려받기
+vercel dev     # http://localhost:3000
+```
+
+## 보안
+
+- API 키는 **서버 환경변수에만** 존재 — 클라이언트 코드, localStorage, 네트워크 응답 어디에도 평문으로 노출되지 않음
+- 클라이언트는 `/api/generate` 로 `{ mode, keyword, count }` 만 전송
+- Rate limit (429) 시 `retryAfterSeconds` 만 전달되며 키 정보는 절대 응답하지 않음
+- 저장소(Git/Vercel 빌드 로그) 어디에도 키가 들어가지 않음 — `.gitignore` 와 환경변수 분리 보장
+- **공개 배포 시 주의**: Vercel 프로젝트 URL은 누구나 호출할 수 있으므로 본인 키의 분당/일일 한도가 모두 소진될 수 있음. 비공개 사용을 원하면 Vercel **Deployment Protection** (Pro 플랜) 또는 `api/generate.js` 상단에 간단한 `Authorization` 토큰 체크를 추가하세요.
+
+## GitHub Pages 사용 불가
+
+GitHub Pages는 서버리스 함수를 지원하지 않아 이 구조에서는 동작하지 않습니다. Vercel 또는 동등한 함수 호스팅 환경(Cloudflare Workers, Netlify Functions 등)을 사용하세요.
 
 ## 파일 구성
 
@@ -38,18 +53,13 @@ Google Gemini (`gemini-2.5-flash-lite`) 로 한국어 아재개그를 만들어 
 web/
   index.html        ─ 마크업 + 템플릿
   styles.css        ─ 스타일 (라이트/다크 자동 대응)
-  app.js            ─ 상태/라우팅/뷰 로직
-  gemini.js         ─ Gemini API 래퍼 (단일/배치, 429 재시도)
-  storage.js        ─ localStorage 즐겨찾기 저장소
+  app.js            ─ 상태 / 라우팅 / 뷰
+  gemini.js         ─ /api/generate 호출 래퍼
+  storage.js        ─ localStorage 즐겨찾기 저장소 (키는 다루지 않음)
   seed_jokes.json   ─ 내장 시드 데이터
+  api/
+    generate.js     ─ Vercel 서버리스 프록시 (Gemini 호출)
 ```
-
-## 기술 메모
-
-- 빌드 없음, 의존성 없음. ES 모듈만 사용.
-- `Gemini responseSchema` 를 사용해 5개 필드(`type/category/question/answer/explanation`) 보장.
-- 429 (분당 한도) 시 `Retry-After` / 본문 메시지를 파싱해 카운트다운 후 1회 자동 재시도.
-- 즐겨찾기 중복 제거 키: `question.trim() + '\u0001' + answer.trim()`.
 
 ## 라이선스
 

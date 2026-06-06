@@ -1,12 +1,5 @@
 import { generateJoke, generateJokes, RateLimitedError, MAX_BATCH } from "./gemini.js";
-import {
-  Favorites,
-  fromJoke,
-  makeManual,
-  getApiKey,
-  setApiKey,
-  hasApiKey,
-} from "./storage.js";
+import { Favorites, fromJoke, makeManual } from "./storage.js";
 
 const MAX_TOTAL_BATCH = 30;
 const MAX_RETRIES = 1;
@@ -132,7 +125,6 @@ function twoStepConfirm({ count, label, onConfirm }) {
 function render() {
   if (state.view === "home") renderHome();
   else if (state.view === "favorites") renderFavorites();
-  else if (state.view === "settings") renderSettings();
 }
 
 // ============ HOME ============
@@ -142,15 +134,11 @@ function renderHome() {
   backBtn.hidden = true;
   setTopActions([
     { icon: "🔖", title: "저장한 개그", onClick: () => navigate("favorites") },
-    { icon: "⚙️", title: "설정", onClick: () => navigate("settings") },
   ]);
 
   const tpl = document.getElementById("tpl-home").content.cloneNode(true);
   appEl.innerHTML = "";
   appEl.appendChild(tpl);
-
-  const warning = appEl.querySelector("#apiKeyWarning");
-  warning.hidden = hasApiKey();
 
   const kw = appEl.querySelector("#keyword");
   kw.value = state.keyword;
@@ -269,7 +257,7 @@ async function handleSingleGenerate() {
   let attempts = 0;
   while (true) {
     try {
-      const joke = await generateJoke(getApiKey(), state.keyword);
+      const joke = await generateJoke(state.keyword);
       state.pendingJokes = [{ id: uuid(), joke }, ...state.pendingJokes];
       state.loading = false;
       state.retryCountdown = null;
@@ -316,7 +304,7 @@ async function handleBatchGenerate(count) {
     let done = false;
     while (!done) {
       try {
-        const jokes = await generateJokes(getApiKey(), keyword, chunk);
+        const jokes = await generateJokes(keyword, chunk);
         const newPending = jokes.map((j) => ({ id: uuid(), joke: j }));
         state.pendingJokes = [...newPending, ...state.pendingJokes];
         state.batch.received += jokes.length;
@@ -767,59 +755,6 @@ function openEditDialog(initial) {
   };
   renderModal();
   openModal(root);
-}
-
-// ============ SETTINGS ============
-
-function renderSettings() {
-  topTitle.textContent = "설정";
-  backBtn.hidden = false;
-  setTopActions([]);
-
-  const tpl = document.getElementById("tpl-settings").content.cloneNode(true);
-  appEl.innerHTML = "";
-  appEl.appendChild(tpl);
-
-  const input = appEl.querySelector("#apiKey");
-  input.value = getApiKey();
-  const toggle = appEl.querySelector("#toggleVis");
-  toggle.onclick = () => {
-    if (input.type === "password") {
-      input.type = "text";
-      toggle.textContent = "숨김";
-    } else {
-      input.type = "password";
-      toggle.textContent = "표시";
-    }
-  };
-
-  appEl.querySelector("#saveKey").onclick = () => {
-    const v = input.value.trim();
-    if (!v) {
-      showSnackbar("키를 입력하세요.");
-      return;
-    }
-    if (!v.startsWith("AIzaSy")) {
-      showSnackbar('유효한 Gemini API 키가 아닙니다. "AIzaSy" 로 시작해야 합니다.');
-      return;
-    }
-    setApiKey(v);
-    showSnackbar("저장 완료");
-  };
-
-  appEl.querySelector("#clearKey").onclick = () => {
-    confirmDialog({
-      title: "키 삭제",
-      message: "저장된 Gemini API 키를 삭제합니다.",
-      confirmText: "삭제",
-      danger: true,
-      onConfirm: () => {
-        setApiKey("");
-        input.value = "";
-        showSnackbar("삭제 완료");
-      },
-    });
-  };
 }
 
 // Init

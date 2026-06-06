@@ -19,10 +19,6 @@
 
   <template id="tpl-home">
     <section class="page">
-      <div class="card warning" id="apiKeyWarning" hidden>
-        Gemini API 키가 설정되지 않았습니다. 우측 상단 ⚙️ 에서 키를 입력하세요.
-      </div>
-
       <label class="field">
         <span>주제 (선택)</span>
         <input type="text" id="keyword" placeholder="예: 커피, 회사, 동물" />
@@ -71,32 +67,6 @@
       <div id="favList" class="fav-list"></div>
       <div id="favEmpty" class="empty" hidden>저장된 개그가 없습니다.</div>
       <button class="fab" id="fabAdd" aria-label="개그 추가">＋</button>
-    </section>
-  </template>
-
-  <template id="tpl-settings">
-    <section class="page">
-      <div class="card">
-        <label class="field">
-          <span>Gemini API 키</span>
-          <div class="input-wrap">
-            <input type="password" id="apiKey" placeholder="AIzaSy..." />
-            <button type="button" class="text-btn" id="toggleVis">표시</button>
-          </div>
-        </label>
-        <div class="row gap">
-          <button class="primary-btn" id="saveKey">저장</button>
-          <button class="outlined-btn" id="clearKey">삭제</button>
-        </div>
-        <p class="note">
-          유효한 Gemini API 키는 <code>AIzaSy</code> 로 시작합니다.
-          키는 브라우저 로컬 저장소에 평문으로 저장됩니다.
-          공용 PC에서는 사용 후 반드시 삭제하세요.
-        </p>
-        <p class="note">
-          키 발급: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>
-        </p>
-      </div>
     </section>
   </template>
 

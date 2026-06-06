@@ -1,5 +1,7 @@
-const KEY_API = "dad_joke_api_key";
 const KEY_FAVS = "dad_joke_favorites_v1";
+const LEGACY_KEY_API = "dad_joke_api_key";
+
+try { localStorage.removeItem(LEGACY_KEY_API); } catch {}
 
 function uuid() {
   if (crypto?.randomUUID) return crypto.randomUUID();
@@ -7,19 +9,6 @@ function uuid() {
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
   });
-}
-
-export function getApiKey() {
-  return localStorage.getItem(KEY_API) || "";
-}
-
-export function setApiKey(key) {
-  if (key) localStorage.setItem(KEY_API, key.trim());
-  else localStorage.removeItem(KEY_API);
-}
-
-export function hasApiKey() {
-  return getApiKey().trim().length > 0;
 }
 
 export function fromJoke(joke) {
